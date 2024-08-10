@@ -15,7 +15,7 @@ override.tf.json
 
 # Ignore plan files (output from `terraform plan`)
 *.tfplan
-
+certs
 # Ignore .terraform directory and all its contents (Terraform modules and providers)
 .terraform/
 .terraform.lock.hcl
