@@ -19,7 +19,7 @@ certs
 # Ignore .terraform directory and all its contents (Terraform modules and providers)
 .terraform/
 .terraform.lock.hcl
-
+variables.tf
 # Ignore Terraform provider-specific directories (generated files)
 .terraform.d/
 
