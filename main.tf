@@ -153,6 +153,7 @@ resource "aws_db_instance" "postgres" {
   }
 }
 
+
 resource "aws_db_subnet_group" "main" {
   name       = "main"
   subnet_ids = [for subnet in aws_subnet.main : subnet.id]
