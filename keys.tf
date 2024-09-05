@@ -48,12 +48,12 @@
 # }
 
 # Upload the self-signed certificate to AWS ACM
-resource "aws_acm_certificate" "self_signed_cert" {
-  private_key       = file("certs/private.key")        # Path to your private key
-  certificate_body  = file("certs/certificate.crt")    # Path to your certificate
-  certificate_chain = file("certs/certificate.crt")    # Path to the certificate chain (can be same as cert for self-signed)
-
-  tags = {
-    Name = "Self-Signed Certificate"
-  }
-}
+# resource "aws_acm_certificate" "self_signed_cert" {
+#   private_key       = file("certs/private.key")        # Path to your private key
+#   certificate_body  = file("certs/certificate.crt")    # Path to your certificate
+#   certificate_chain = file("certs/certificate.crt")    # Path to the certificate chain (can be same as cert for self-signed)
+#
+#   tags = {
+#     Name = "Self-Signed Certificate"
+#   }
+# }

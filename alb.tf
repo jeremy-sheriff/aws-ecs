@@ -8,12 +8,13 @@ resource "aws_lb" "app-alb" {
   enable_deletion_protection = false
 }
 
-resource "aws_lb_listener" "app-alb" {
+resource "aws_lb_listener" "default_listener" {
   load_balancer_arn = aws_lb.app-alb.arn
   port              = 443
   protocol          = "HTTPS"
+
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "arn:aws:acm:us-east-1:975049979529:certificate/458d69f8-2369-4b73-b672-8bf4255c4046"  # Your uploaded ACM certificate ARN
+  certificate_arn   = "arn:aws:acm:us-east-1:975049979529:certificate/35972e2c-85a5-4278-8660-ce55fd135f9c"
 
   default_action {
     type             = "forward"
@@ -21,28 +22,8 @@ resource "aws_lb_listener" "app-alb" {
   }
 }
 
-resource "aws_lb_listener_rule" "api" {
-  listener_arn = aws_lb_listener.app-alb.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.api.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/api/*"]
-    }
-  }
-
-  tags = {
-    Name = "Api Rule"
-  }
-}
-
 resource "aws_lb_listener_rule" "keycloak" {
-  listener_arn = aws_lb_listener.app-alb.arn
+  listener_arn = aws_lb_listener.default_listener.arn
   priority     = 200
 
   action {
@@ -58,5 +39,47 @@ resource "aws_lb_listener_rule" "keycloak" {
 
   tags = {
     Name = "Keycloak Rule"
+  }
+}
+
+resource "aws_lb_listener_rule" "students" {
+  listener_arn = aws_lb_listener.default_listener.arn
+  priority     = 300
+
+  condition {
+    path_pattern {
+      values = ["/api/students/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.students.arn
+  }
+
+
+
+  tags = {
+    Name = "Students service Rule"
+  }
+}
+
+resource "aws_lb_listener_rule" "library" {
+  listener_arn = aws_lb_listener.default_listener.arn
+  priority     = 400
+
+  condition {
+    path_pattern {
+      values = ["/api/library/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.library.arn
+  }
+
+  tags = {
+    Name = "Library service Rule"
   }
 }
