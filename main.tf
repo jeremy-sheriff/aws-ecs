@@ -7,6 +7,11 @@ locals {
 }
 
 
+resource "aws_cloudwatch_log_group" "ui" {
+  name              = "/ecs/ui"
+  retention_in_days = 7
+}
+
 resource "aws_cloudwatch_log_group" "keycloak" {
   name              = "/ecs/keycloak"
   retention_in_days = 7

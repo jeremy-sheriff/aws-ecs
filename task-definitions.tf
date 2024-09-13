@@ -8,12 +8,12 @@ resource "aws_ecs_task_definition" "ui" {
   container_definitions = jsonencode([
     {
       name      = "ui-container",
-      image     = "muhohoweb/speech-ui:1.0.1",
+      image     = "muhohoweb/school-ui:2.0.3",
       essential = true,
       environment = [
         {
           name  = "API_ENDPOINT"
-          value = "https://${aws_lb.app-alb.dns_name}/api"
+          value = "https://${var.domain}/api"
         }
       ],
       portMappings = [
@@ -146,15 +146,19 @@ resource "aws_ecs_task_definition" "students" {
   family                   = "students-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "1024"
-  memory                   = "2048"
+  cpu                      = "512"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
       name      = "students-container",
-      image     = "muhohoweb/students-image:3.0.0",
+      image     = "muhohoweb/students-image:3.1.4",
       essential = true,
       environment = [
+        {
+          "name": "DOCKER_IMAGE_NAME",
+          "value": "3.1.3"
+        },
         {
           "name": "COURSE_URL",
           "value": "localhost:8083"
@@ -226,7 +230,7 @@ resource "aws_ecs_task_definition" "library" {
   container_definitions = jsonencode([
     {
       name      = "library-container",
-      image     = "muhohoweb/library-image:1.0.4",
+      image     = "muhohoweb/library-image:1.0.6",
       essential = true,
       environment = [
         {
