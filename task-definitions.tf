@@ -7,9 +7,9 @@ resource "aws_ecs_task_definition" "ui" {
 
   container_definitions = jsonencode([
     {
-      name      = "ui-container",
-      image     = "muhohoweb/school-ui:2.0.3",
       essential = true,
+      name      = "ui-container",
+      image     = var.UI_IMAGE,
       environment = [
         {
           name  = "API_ENDPOINT"
@@ -94,7 +94,7 @@ resource "aws_ecs_task_definition" "keycloak" {
         },
         {
           name  = "KC_DB_URL"
-          value = "jdbc:postgresql://${aws_db_instance.postgres.endpoint}/postgres"
+          value = "jdbc:postgresql://${aws_db_instance.postgres.endpoint}/postgres?currentSchema=keycloak"
         },
         {
           name  = "KC_DB_USERNAME"
@@ -152,12 +152,12 @@ resource "aws_ecs_task_definition" "students" {
   container_definitions = jsonencode([
     {
       name      = "students-container",
-      image     = "muhohoweb/students-image:3.1.4",
+      image     = var.STUDENTS_IMAGE,
       essential = true,
       environment = [
         {
           "name": "DOCKER_IMAGE_NAME",
-          "value": "3.1.3"
+          "value": var.STUDENTS_IMAGE
         },
         {
           "name": "COURSE_URL",
@@ -230,7 +230,7 @@ resource "aws_ecs_task_definition" "library" {
   container_definitions = jsonencode([
     {
       name      = "library-container",
-      image     = "muhohoweb/library-image:1.0.6",
+      image     = var.LIBRARY_IMAGE,
       essential = true,
       environment = [
         {
