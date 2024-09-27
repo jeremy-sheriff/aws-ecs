@@ -1,9 +1,10 @@
 resource "aws_ecs_task_definition" "ui" {
+  depends_on = [null_resource.run_db_initializer]
   family                   = "ui-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
   container_definitions = jsonencode([
     {
@@ -36,11 +37,12 @@ resource "aws_ecs_task_definition" "ui" {
 }
 
 resource "aws_ecs_task_definition" "keycloak" {
+  depends_on = [null_resource.run_db_initializer]
   family                   = "keycloak"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
   container_definitions = jsonencode([
     {
@@ -143,11 +145,12 @@ resource "aws_ecs_task_definition" "keycloak" {
 }
 
 resource "aws_ecs_task_definition" "students" {
+  depends_on = [null_resource.run_db_initializer]
   family                   = "students-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
   container_definitions = jsonencode([
     {
@@ -221,6 +224,7 @@ resource "aws_ecs_task_definition" "students" {
 }
 
 resource "aws_ecs_task_definition" "library" {
+  depends_on = [null_resource.run_db_initializer]
   family                   = "library-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -298,3 +302,62 @@ resource "aws_ecs_task_definition" "library" {
 
   execution_role_arn = var.taskExecutionRole
 }
+
+resource "aws_ecs_task_definition" "db_initializer" {
+  family                   = "db-initializer-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"
+  memory                   = "1024"
+
+  container_definitions = jsonencode([
+    {
+
+      name      = "db-initializer-container",
+      image     = "muhohoweb/db-initializer:1.0.0", # Use your custom image
+      essential = true,
+      entryPoint = ["sh", "-c"],
+      command = [
+        "psql -h ${local.rds_endpoint_without_port} -U ${var.DB_USER} -d ${var.DB_NAME} -p 5432 -c \"CREATE SCHEMA if not exists students; CREATE SCHEMA if not exists library; CREATE SCHEMA if not exists keycloak;\""
+      ],
+#       command = [
+#         "aws s3 cp s3://sql-ceript/init.sql /tmp/init.sql && psql -h ${local.rds_endpoint_without_port} -U ${var.DB_USER} -d ${var.DB_NAME} -p 5432 -f /tmp/init.sql"
+#       ],
+      environment = [
+        {
+          name  = "PGPASSWORD",
+          value = var.DB_PASSWORD
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/db-initializer"
+          "awslogs-region"        = var.region
+          "awslogs-stream-prefix" = "db-init"
+        }
+      }
+    }
+  ])
+
+  execution_role_arn = var.taskExecutionRole
+}
+
+resource "null_resource" "run_db_initializer" {
+  provisioner "local-exec" {
+    command = <<EOT
+      aws ecs run-task \
+        --cluster ${aws_ecs_cluster.main.name} \
+        --task-definition ${aws_ecs_task_definition.db_initializer.family} \
+        --network-configuration "awsvpcConfiguration={subnets=[${join(",", local.subnet_ids)}],securityGroups=[${join(",", local.security_group_ids)}],assignPublicIp=ENABLED}" \
+        --launch-type FARGATE
+    EOT
+  }
+
+  depends_on = [
+    aws_ecs_task_definition.db_initializer
+  ]
+}
+
+
+

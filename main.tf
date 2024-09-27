@@ -6,6 +6,18 @@ locals {
   rds_endpoint_without_port = regex("^([^:]+)", aws_db_instance.postgres.endpoint)[0]
 }
 
+locals {
+  subnet_ids = aws_subnet.main[*].id
+}
+
+locals {
+  security_group_ids = [
+    aws_security_group.ecs.id,
+    aws_security_group.library_sg.id,
+    aws_security_group.students_security_group.id
+  ]
+}
+
 
 resource "aws_cloudwatch_log_group" "ui" {
   name              = "/ecs/ui"
@@ -24,6 +36,11 @@ resource "aws_cloudwatch_log_group" "students" {
 
 resource "aws_cloudwatch_log_group" "library" {
   name              = "/ecs/library"
+  retention_in_days = 7
+}
+
+resource "aws_cloudwatch_log_group" "db" {
+  name              = "/ecs/db-initializer"
   retention_in_days = 7
 }
 
@@ -85,7 +102,7 @@ resource "aws_route_table_association" "b" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_route53_record" "muhohodev_alias" {
-  zone_id = "Z1010961TWEU088ZAZY1"
+  zone_id = var.ZONE_ID
   name    = "muhohodev.com"
   type    = "A"
 
