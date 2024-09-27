@@ -320,9 +320,6 @@ resource "aws_ecs_task_definition" "db_initializer" {
       command = [
         "psql -h ${local.rds_endpoint_without_port} -U ${var.DB_USER} -d ${var.DB_NAME} -p 5432 -c \"CREATE SCHEMA if not exists students; CREATE SCHEMA if not exists library; CREATE SCHEMA if not exists keycloak;\""
       ],
-#       command = [
-#         "aws s3 cp s3://sql-ceript/init.sql /tmp/init.sql && psql -h ${local.rds_endpoint_without_port} -U ${var.DB_USER} -d ${var.DB_NAME} -p 5432 -f /tmp/init.sql"
-#       ],
       environment = [
         {
           name  = "PGPASSWORD",
