@@ -8,13 +8,13 @@ resource "aws_lb" "app-alb" {
   enable_deletion_protection = false
 }
 
-resource "aws_lb_listener" "default_listener" {
+resource "aws_lb_listener" "https_listener" {
   load_balancer_arn = aws_lb.app-alb.arn
   port              = 443
   protocol          = "HTTPS"
 
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "arn:aws:acm:us-east-1:975049979529:certificate/35972e2c-85a5-4278-8660-ce55fd135f9c"
+  certificate_arn   = var.CERT_ARN
 
   default_action {
     type             = "forward"
@@ -22,8 +22,11 @@ resource "aws_lb_listener" "default_listener" {
   }
 }
 
+
+
+
 resource "aws_lb_listener_rule" "keycloak" {
-  listener_arn = aws_lb_listener.default_listener.arn
+  listener_arn = aws_lb_listener.https_listener.arn
   priority     = 200
 
   action {
@@ -43,7 +46,7 @@ resource "aws_lb_listener_rule" "keycloak" {
 }
 
 resource "aws_lb_listener_rule" "students" {
-  listener_arn = aws_lb_listener.default_listener.arn
+  listener_arn = aws_lb_listener.https_listener.arn
   priority     = 300
 
   condition {
@@ -65,7 +68,7 @@ resource "aws_lb_listener_rule" "students" {
 }
 
 resource "aws_lb_listener_rule" "library" {
-  listener_arn = aws_lb_listener.default_listener.arn
+  listener_arn = aws_lb_listener.https_listener.arn
   priority     = 400
 
   condition {

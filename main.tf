@@ -113,3 +113,21 @@ resource "aws_route53_record" "muhohodev_alias" {
   }
 }
 
+
+# resource "aws_route53_record" "muhohodev_alias" {
+#   zone_id = var.ZONE_ID  # Your Route 53 hosted zone ID for muhohodev.com
+#   name    = "muhohodev.com"
+#   type    = "A"
+#
+#   alias {
+#     name                   = "d-s6sgulo9mf.execute-api.us-east-1.amazonaws.com"  # The API Gateway domain name from the screenshot
+#     zone_id                = "Z1UJRXOUMOOFQ8"  # The hosted zone ID for the API Gateway custom domain
+#     evaluate_target_health = false
+#   }
+# }
+
+
+
+
+
+

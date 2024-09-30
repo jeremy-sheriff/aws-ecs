@@ -3,8 +3,8 @@ resource "aws_ecs_task_definition" "ui" {
   family                   = "ui-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "1024"
-  memory                   = "2048"
+  cpu                      = "512"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
@@ -41,8 +41,8 @@ resource "aws_ecs_task_definition" "keycloak" {
   family                   = "keycloak"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "1024"
-  memory                   = "2048"
+  cpu                      = "512"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
@@ -149,8 +149,8 @@ resource "aws_ecs_task_definition" "students" {
   family                   = "students-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "1024"
-  memory                   = "2048"
+  cpu                      = "512"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
