@@ -27,6 +27,10 @@ resource "aws_apigatewayv2_route" "students_proxy_route" {
   api_id    = aws_apigatewayv2_api.school_http_api.id
   route_key = "ANY /students/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.students_proxy_integration.id}"
+
+  # Apply the JWT authorizer
+  authorization_type = "JWT"
+  authorizer_id = aws_apigatewayv2_authorizer.school_jwt_authorizer.id
 }
 
 # Define the integration with ALB for /api/library/{proxy+}
@@ -38,12 +42,6 @@ resource "aws_apigatewayv2_integration" "library_proxy_integration" {
   payload_format_version    = "1.0"
 }
 
-# Define the default route (/api/library/{proxy+})
-resource "aws_apigatewayv2_route" "library_proxy_route" {
-  api_id    = aws_apigatewayv2_api.school_http_api.id
-  route_key = "ANY /library/{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.library_proxy_integration.id}"
-}
 
 # Deploy the API Gateway
 resource "aws_apigatewayv2_deployment" "students_api_deployment" {
@@ -62,7 +60,7 @@ resource "aws_apigatewayv2_stage" "prod_stage" {
   name        = "prod"  # Stage name
   deployment_id = aws_apigatewayv2_deployment.students_api_deployment.id
 
-  auto_deploy = false  # Automatically deploy changes to the stage
+  auto_deploy = true  # Automatically deploy changes to the stage
 }
 
 # Get the API Gateway endpoint
@@ -71,11 +69,9 @@ locals {
   api_gateway_dns = replace(aws_apigatewayv2_api.school_http_api.api_endpoint, "https://", "")
 }
 
-
-
 # Create a custom domain for API Gateway
 resource "aws_apigatewayv2_domain_name" "muhohodev_custom_domain" {
-  domain_name = "api.muhohodev.com"  # Your custom domain
+  domain_name = var.api_sub_domain # Your custom domain
   domain_name_configuration {
     certificate_arn = var.SUB_DOMAINS_CERT_ARN  # ACM certificate for api.muhohodev.com
     endpoint_type   = "REGIONAL"
@@ -85,7 +81,7 @@ resource "aws_apigatewayv2_domain_name" "muhohodev_custom_domain" {
 
 resource "aws_route53_record" "muhohodev_api_gateway" {
   zone_id = var.ZONE_ID  # Your Route 53 hosted zone ID for muhohodev.com
-  name    = "api.muhohodev.com"  # The subdomain you want to point to the API Gateway
+  name    = var.api_sub_domain  # The subdomain you want to point to the API Gateway
   type    = "CNAME"
 
   # Point to the API Gateway custom domain name (indexed properly)
@@ -100,6 +96,33 @@ resource "aws_apigatewayv2_api_mapping" "muhohodev_api_mapping" {
   stage        = aws_apigatewayv2_stage.prod_stage.name
   api_mapping_key = ""  # Leave empty to map the root of the domain
 }
+
+
+# Create JWT Authorizer for API Gateway
+resource "aws_apigatewayv2_authorizer" "school_jwt_authorizer" {
+  api_id     = aws_apigatewayv2_api.school_http_api.id
+  name       = "schoolAuthorizer"
+  authorizer_type = "JWT"
+
+  # JWT Configuration
+  identity_sources = ["$request.header.Authorization"]
+  jwt_configuration {
+    issuer = var.ISSUER
+    audience = ["account"]  # The audience that you want to verify
+  }
+}
+
+# Define the default route (/api/library/{proxy+}) with JWT authorization
+resource "aws_apigatewayv2_route" "library_proxy_route" {
+  api_id    = aws_apigatewayv2_api.school_http_api.id
+  route_key = "ANY /library/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.library_proxy_integration.id}"
+
+  # Apply the JWT authorizer
+  authorization_type = "JWT"
+  authorizer_id = aws_apigatewayv2_authorizer.school_jwt_authorizer.id
+}
+
 
 
 
