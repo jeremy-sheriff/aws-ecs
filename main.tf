@@ -45,7 +45,7 @@ resource "aws_cloudwatch_log_group" "db" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16" //256
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -103,7 +103,7 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_route53_record" "muhohodev_alias" {
   zone_id = var.ZONE_ID
-  name    = "muhohodev.com"
+  name    = var.domain
   type    = "A"
 
   alias {
@@ -112,19 +112,6 @@ resource "aws_route53_record" "muhohodev_alias" {
     evaluate_target_health = true
   }
 }
-
-
-# resource "aws_route53_record" "muhohodev_alias" {
-#   zone_id = var.ZONE_ID  # Your Route 53 hosted zone ID for muhohodev.com
-#   name    = "muhohodev.com"
-#   type    = "A"
-#
-#   alias {
-#     name                   = "d-s6sgulo9mf.execute-api.us-east-1.amazonaws.com"  # The API Gateway domain name from the screenshot
-#     zone_id                = "Z1UJRXOUMOOFQ8"  # The hosted zone ID for the API Gateway custom domain
-#     evaluate_target_health = false
-#   }
-# }
 
 
 

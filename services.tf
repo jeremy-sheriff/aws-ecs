@@ -21,7 +21,7 @@ resource "aws_ecs_service" "students_service" {
   name            = "students-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.students.arn
-  desired_count   = 1
+  desired_count   = 2
   launch_type     = "FARGATE"
   network_configuration {
     subnets         = [for subnet in aws_subnet.main : subnet.id]

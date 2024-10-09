@@ -15,11 +15,20 @@ resource "aws_s3_bucket_public_access_block" "allow_public_access" {
   restrict_public_buckets = false
 }
 
-resource "aws_s3_object" "object" {
+# Upload init.sql file to S3 bucket
+resource "aws_s3_object" "init_sql" {
   bucket = aws_s3_bucket.db_bucket.id
   key    = "init.sql"
   source = "init.sql"
   etag   = filemd5("init.sql")
+}
+
+# Upload realm.json file to S3 bucket
+resource "aws_s3_object" "realm_json" {
+  bucket = aws_s3_bucket.db_bucket.id
+  key    = "realm.json"
+  source = "school-realm.json" # Replace with the local path to your realm.json file
+  etag   = filemd5("school-realm.json")
 }
 
 resource "aws_s3_bucket_policy" "public_read_policy" {
@@ -39,5 +48,9 @@ resource "aws_s3_bucket_policy" "public_read_policy" {
 }
 
 output "my_bucket_file_version" {
-  value = aws_s3_object.object.id
+  value = aws_s3_object.init_sql.id
+}
+
+output "realm_file_version" {
+  value = aws_s3_object.realm_json.id
 }
