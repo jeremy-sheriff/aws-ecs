@@ -27,24 +27,45 @@ resource "aws_apigatewayv2_authorizer" "school_jwt_authorizer" {
   }
 }
 
+resource "aws_apigatewayv2_integration" "library_proxy_integration" {
+  api_id                 = aws_apigatewayv2_api.school_http_api.id
+  integration_type       = "HTTP_PROXY"
+  integration_method     = "ANY"
+  integration_uri        = "https://${var.domain}/api/library/{proxy}"
+
+  payload_format_version = "1.0"
+  description               = "This integration looks for all /library matches and forwards them"
+
+  # Add credentials_arn field to specify the role API Gateway will assume
+  credentials_arn        = aws_iam_role.api_gateway_lambda_invoke_role.arn
+}
+
+# Lambda Integration for CORS
+resource "aws_apigatewayv2_integration" "students_options_integration" {
+  api_id                 = aws_apigatewayv2_api.school_http_api.id
+  integration_type       = "AWS_PROXY"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.school_lambda.invoke_arn
+  payload_format_version = "2.0"
+  description               = "Lambda integration for school API"
+
+  # Add credentials_arn field to specify the role API Gateway will assume
+  credentials_arn        = aws_iam_role.api_gateway_lambda_invoke_role.arn
+}
+
 # Define Integrations for Library and Students Services
 resource "aws_apigatewayv2_integration" "students_proxy_integration" {
   api_id                 = aws_apigatewayv2_api.school_http_api.id
   integration_type       = "HTTP_PROXY"
   integration_method     = "ANY"
   integration_uri        = "https://${var.domain}/api/students/{proxy}"
+
+
   payload_format_version = "1.0"
+  description               = "This integration looks for all /students matches and forwards them"
 
   # Add credentials_arn field to specify the role API Gateway will assume
   credentials_arn        = aws_iam_role.api_gateway_lambda_invoke_role.arn
-}
-
-resource "aws_apigatewayv2_integration" "library_proxy_integration" {
-  api_id                 = aws_apigatewayv2_api.school_http_api.id
-  integration_type       = "HTTP_PROXY"
-  integration_method     = "ANY"
-  integration_uri        = "https://${var.domain}/api/library/{proxy}"
-  payload_format_version = "1.0"
 }
 
 # Define Routes for Library and Students
@@ -81,6 +102,7 @@ resource "aws_apigatewayv2_deployment" "students_api_deployment" {
     aws_apigatewayv2_route.students_options_route
   ]
 }
+
 
 
 # API Gateway Stage with Access Logging
@@ -166,17 +188,7 @@ resource "aws_apigatewayv2_route" "library_options_route" {
 }
 
 
-# Lambda Integration for CORS
-resource "aws_apigatewayv2_integration" "students_options_integration" {
-  api_id                 = aws_apigatewayv2_api.school_http_api.id
-  integration_type       = "AWS_PROXY"
-  integration_method     = "POST"
-  integration_uri        = aws_lambda_function.school_lambda.arn
-  payload_format_version = "2.0"
 
-  # Add credentials_arn field to specify the role API Gateway will assume
-  credentials_arn        = aws_iam_role.api_gateway_lambda_invoke_role.arn
-}
 
 
 
@@ -223,10 +235,5 @@ resource "aws_iam_role_policy" "api_gw_logging_policy" {
     ]
   })
 }
-
-
-
-# Existing API Gateway configuration continues below...
-# (No changes required for your other resources, only stage needs logging settings)
 
 

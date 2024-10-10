@@ -112,14 +112,4 @@ resource "aws_lambda_function" "school_lambda" {
   }
 }
 
-# Create API Gateway integration for the Lambda function
-resource "aws_apigatewayv2_integration" "school_lambda_integration" {
-  api_id           = aws_apigatewayv2_api.school_http_api.id
-  integration_type = "AWS_PROXY"
-  integration_method = "POST"  # Adjust this based on your API
 
-  connection_type           = "INTERNET"
-  description               = "Lambda integration for school API"
-  integration_uri           = aws_lambda_function.school_lambda.invoke_arn
-  passthrough_behavior      = "WHEN_NO_MATCH"
-}
