@@ -68,6 +68,8 @@ resource "aws_apigatewayv2_integration" "students_proxy_integration" {
   credentials_arn        = aws_iam_role.api_gateway_lambda_invoke_role.arn
 }
 
+
+
 # Define Routes for Library and Students
 resource "aws_apigatewayv2_route" "library_proxy_route" {
   api_id    = aws_apigatewayv2_api.school_http_api.id
@@ -105,8 +107,6 @@ resource "aws_apigatewayv2_deployment" "students_api_deployment" {
 
 
 
-# API Gateway Stage with Access Logging
-# API Gateway Stage with Access Logging and Throttling
 resource "aws_apigatewayv2_stage" "production_stage" {
   api_id       = aws_apigatewayv2_api.school_http_api.id
   name         = "production"  # Stage name
@@ -117,16 +117,16 @@ resource "aws_apigatewayv2_stage" "production_stage" {
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gw_logs.arn
     format          = jsonencode({
-      requestId        = "$context.requestId",
-      ip               = "$context.identity.sourceIp",
-      caller           = "$context.identity.caller",
-      user             = "$context.identity.user",
-      requestTime      = "$context.requestTime",
-      httpMethod       = "$context.httpMethod",
-      resourcePath     = "$context.resourcePath",
-      status           = "$context.status",
-      protocol         = "$context.protocol",
-      responseLength   = "$context.responseLength"
+      requestId              = "$context.requestId",
+      ip                     = "$context.identity.sourceIp",
+      caller                 = "$context.identity.caller",
+      user                   = "$context.identity.user",
+      requestTime            = "$context.requestTime",
+      httpMethod             = "$context.httpMethod",
+      resourcePath           = "$context.resourcePath",
+      status                 = "$context.status",
+      protocol               = "$context.protocol",
+      responseLength         = "$context.responseLength",
       integrationErrorMessage = "$context.integrationErrorMessage"
     })
   }
@@ -142,6 +142,9 @@ resource "aws_apigatewayv2_stage" "production_stage" {
     throttling_rate_limit  = 100  # Steady-state rate limit (requests per second)
   }
 }
+
+
+
 
 
 # Define Custom Domain Name for API Gateway
@@ -235,5 +238,9 @@ resource "aws_iam_role_policy" "api_gw_logging_policy" {
     ]
   })
 }
+
+
+
+
 
 

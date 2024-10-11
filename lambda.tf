@@ -85,6 +85,7 @@ resource "aws_cloudwatch_log_group" "school_lambda_log_group" {
   retention_in_days = 7  # Optional: sets log retention period to 7 days
 }
 
+
 # Create Lambda function
 resource "aws_lambda_function" "school_lambda" {
   filename      = "lambda_function.zip"  # Ensure your Lambda code is zipped and available at this location
@@ -111,5 +112,80 @@ resource "aws_lambda_function" "school_lambda" {
     Name = "schoolLambdaFunction"
   }
 }
+
+
+
+
+
+#WEB SOCKETS
+
+# Create a CloudWatch Log Group for Lambda (optional)
+resource "aws_cloudwatch_log_group" "websocket_lambda_log_group" {
+  name              = "/aws/lambda/websocket-message-handler"
+  retention_in_days = 14  # Customize retention if needed
+}
+
+# Zip the Lambda function (websocket handler)
+resource "null_resource" "package_lambda" {
+  provisioner "local-exec" {
+    command = "zip -j lambda_function.zip ./websocket_lambda/index.py"
+    working_dir = path.module
+  }
+
+  triggers = {
+    always_run = timestamp()  # Always run this null resource when running `terraform apply`
+  }
+}
+
+# Lambda function to handle WebSocket messages
+resource "aws_lambda_function" "websocket_message_lambda" {
+  function_name    = "websocket-message-handler"
+  handler          = "index.handler"
+  runtime          = "python3.8"
+  role             = aws_iam_role.web_socket_lambda_execution_role.arn
+  filename         = "${path.module}/lambda_function.zip"  # Reference the ZIP file
+  source_code_hash = filebase64sha256("${path.module}/lambda_function.zip")  # Compute hash of the zip file
+
+  depends_on = [null_resource.package_lambda]  # Ensure the ZIP file is created first
+}
+
+# IAM role for Lambda to execute
+resource "aws_iam_role" "web_socket_lambda_execution_role" {
+  name = "web-sockets-lambda-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_logs_policy" {
+  name   = "lambda-logs"
+  role   = aws_iam_role.web_socket_lambda_execution_role.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
 
 

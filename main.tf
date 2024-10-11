@@ -2,6 +2,8 @@ provider "aws" {
   region = var.region
 }
 
+
+
 locals {
   rds_endpoint_without_port = regex("^([^:]+)", aws_db_instance.postgres.endpoint)[0]
 }
