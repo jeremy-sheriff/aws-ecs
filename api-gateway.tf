@@ -241,6 +241,13 @@ resource "aws_iam_role_policy" "api_gw_logging_policy" {
 
 
 
-
+# WebSocket API Integration for the $connect route
+resource "aws_apigatewayv2_integration" "connect_integration" {
+  api_id                 = aws_apigatewayv2_api.school_websocket_api.id
+  integration_type       = "AWS_PROXY"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.websocket_connect_lambda.arn  # Connect Lambda function ARN
+  payload_format_version = "1.0"  # For WebSocket APIs, you need to use 1.0
+}
 
 

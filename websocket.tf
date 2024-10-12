@@ -9,6 +9,7 @@ resource "aws_apigatewayv2_api" "school_websocket_api" {
 resource "aws_apigatewayv2_route" "connect_route" {
   api_id    = aws_apigatewayv2_api.school_websocket_api.id
   route_key = "$connect"
+  target    = "integrations/${aws_apigatewayv2_integration.connect_integration.id}"
 }
 
 # Route to handle WebSocket messages with action 'sendMessage'
@@ -35,6 +36,7 @@ resource "aws_apigatewayv2_deployment" "websocket_api_deployment" {
 
   depends_on = [
     aws_apigatewayv2_route.connect_route,
+    aws_apigatewayv2_integration.connect_integration
   ]
 }
 

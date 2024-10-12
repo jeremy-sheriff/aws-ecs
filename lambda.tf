@@ -122,19 +122,45 @@ resource "aws_lambda_function" "school_lambda" {
 # Create a CloudWatch Log Group for Lambda (optional)
 resource "aws_cloudwatch_log_group" "websocket_lambda_log_group" {
   name              = "/aws/lambda/websocket-message-handler"
-  retention_in_days = 14  # Customize retention if needed
+  retention_in_days = 7  # Customize retention if needed
 }
 
 # Zip the Lambda function (websocket handler)
 resource "null_resource" "package_lambda" {
   provisioner "local-exec" {
-    command = "zip -j lambda_function.zip ./websocket_lambda/index.py"
+    command = "zip -j lambda_function.zip ./lambda_function/index.py"
     working_dir = path.module
   }
 
   triggers = {
     always_run = timestamp()  # Always run this null resource when running `terraform apply`
   }
+}
+
+# Zip the new Lambda function for $connect (optional, adjust as needed)
+resource "null_resource" "package_connect_lambda" {
+  provisioner "local-exec" {
+    command = "zip -j connect_lambda_function.zip ./websocket_lambda/connect_handler.py"
+    working_dir = path.module
+  }
+
+  triggers = {
+    always_run = timestamp()  # Always run this null resource when running `terraform apply`
+  }
+}
+
+# Lambda function to handle WebSocket $connect route
+resource "aws_lambda_function" "websocket_connect_lambda" {
+  function_name    = "websocket-connect-handler"
+  handler          = "connect_handler.handler"
+  runtime          = "python3.8"
+  role             = aws_iam_role.web_socket_lambda_execution_role.arn
+  filename         = "${path.module}/connect_lambda_function.zip"  # Reference the ZIP file
+  source_code_hash = filebase64sha256("${path.module}/connect_lambda_function.zip")  # Compute hash of the zip file
+
+  depends_on = [
+    null_resource.package_connect_lambda,
+  ]  # Ensure the ZIP file is created first
 }
 
 # Lambda function to handle WebSocket messages
@@ -148,6 +174,9 @@ resource "aws_lambda_function" "websocket_message_lambda" {
 
   depends_on = [null_resource.package_lambda]  # Ensure the ZIP file is created first
 }
+
+
+
 
 # IAM role for Lambda to execute
 resource "aws_iam_role" "web_socket_lambda_execution_role" {
