@@ -125,6 +125,12 @@ resource "aws_cloudwatch_log_group" "websocket_lambda_log_group" {
   retention_in_days = 7  # Customize retention if needed
 }
 
+# Create a CloudWatch Log Group for Lambda (optional)
+resource "aws_cloudwatch_log_group" "websocket_websocket_lambda_log_group" {
+  name              = "/aws/lambda/websocket-connect-handler"
+  retention_in_days = 7  # Customize retention if needed
+}
+
 # Zip the Lambda function (websocket handler)
 resource "null_resource" "package_lambda" {
   provisioner "local-exec" {
@@ -140,7 +146,7 @@ resource "null_resource" "package_lambda" {
 # Zip the new Lambda function for $connect (optional, adjust as needed)
 resource "null_resource" "package_connect_lambda" {
   provisioner "local-exec" {
-    command = "zip -j connect_lambda_function.zip ./websocket_lambda/connect_handler.py"
+    command = "zip -j connect_lambda_function.zip ./websocket_lambda/index.js"
     working_dir = path.module
   }
 
@@ -152,8 +158,8 @@ resource "null_resource" "package_connect_lambda" {
 # Lambda function to handle WebSocket $connect route
 resource "aws_lambda_function" "websocket_connect_lambda" {
   function_name    = "websocket-connect-handler"
-  handler          = "connect_handler.handler"
-  runtime          = "python3.8"
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
   role             = aws_iam_role.web_socket_lambda_execution_role.arn
   filename         = "${path.module}/connect_lambda_function.zip"  # Reference the ZIP file
   source_code_hash = filebase64sha256("${path.module}/connect_lambda_function.zip")  # Compute hash of the zip file

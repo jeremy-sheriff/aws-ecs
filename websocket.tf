@@ -24,10 +24,23 @@ resource "aws_apigatewayv2_integration" "message_integration" {
   api_id                 = aws_apigatewayv2_api.school_websocket_api.id
   integration_type       = "AWS_PROXY"
   integration_method     = "POST"
-  integration_uri        = aws_lambda_function.websocket_message_lambda.arn
+  integration_uri        = aws_lambda_function.websocket_message_lambda.invoke_arn
   payload_format_version = "1.0"  # Change to 1.0 for WebSocket APIs
 }
 
+
+# WebSocket API Integration for the $connect route
+resource "aws_apigatewayv2_integration" "connect_integration" {
+  api_id                 = aws_apigatewayv2_api.school_websocket_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.websocket_connect_lambda.invoke_arn  # Connect Lambda function ARN
+  payload_format_version = "1.0"  # For WebSocket APIs, you need to use 1.0
+  credentials_arn        = aws_iam_role.api_gateway_lambda_invoke_role.arn
+  connection_type           = "INTERNET"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  description               = "Lambda example"
+  integration_method        = "POST"
+}
 
 
 
