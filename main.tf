@@ -2,7 +2,19 @@ provider "aws" {
   region = var.region
 }
 
+module "sqs_queue" {
+  source = "./modules/sqs_queue"
+  name = "sqs_queue"
+}
 
+# Output the SQS queue URL and ARN
+output "sqs_queue_url" {
+  value = module.sqs_queue.queue_url
+}
+
+output "sqs_queue_arn" {
+  value = module.sqs_queue.queue_arn
+}
 
 locals {
   rds_endpoint_without_port = regex("^([^:]+)", aws_db_instance.postgres.endpoint)[0]

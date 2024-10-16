@@ -1,7 +1,7 @@
 // AWS Lambda function
 exports.handler = async (event) => {
     // Log the incoming event
-    console.log('Received event:', JSON.stringify(event, null, 2));
+    console.log('Jeremy Received event:', JSON.stringify(event, null, 2));
 
     // Response structure for Lambda
     return {
