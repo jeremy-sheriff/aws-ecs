@@ -149,8 +149,8 @@ resource "aws_ecs_task_definition" "students" {
   family                   = "students-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
   container_definitions = jsonencode([
     {
@@ -158,6 +158,14 @@ resource "aws_ecs_task_definition" "students" {
       image     = var.STUDENTS_IMAGE,
       essential = true,
       environment = [
+        {
+          "name":"AWS_ACCESS_KEY_ID",
+          "value":var.AWS_ACCESS_KEY_ID
+        },
+        {
+          "name":"AWS_SECRET_ACCESS_KEY",
+          "value":var.AWS_SECRET_ACCESS_KEY
+        },
         {
           "name": "DOCKER_IMAGE_NAME",
           "value": var.STUDENTS_IMAGE
@@ -228,8 +236,8 @@ resource "aws_ecs_task_definition" "library" {
   family                   = "library-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
   container_definitions = jsonencode([
     {
@@ -237,6 +245,14 @@ resource "aws_ecs_task_definition" "library" {
       image     = var.LIBRARY_IMAGE,
       essential = true,
       environment = [
+        {
+          "name":"AWS_ACCESS_KEY_ID",
+          "value":var.AWS_ACCESS_KEY_ID
+        },
+        {
+          "name":"AWS_SECRET_ACCESS_KEY",
+          "value":var.AWS_SECRET_ACCESS_KEY
+        },
         {
           "name": "STUDENTS_URL",
           "value": var.domain

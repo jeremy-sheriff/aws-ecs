@@ -7,7 +7,7 @@ resource "aws_db_instance" "postgres" {
   username             = var.DB_USER
   password             = var.DB_PASSWORD
   skip_final_snapshot  = true
-  publicly_accessible  = true
+  publicly_accessible  = true // Don't do this in prod
 
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
