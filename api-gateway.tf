@@ -1,8 +1,17 @@
+resource "null_resource" "sleep" {
+  provisioner "local-exec" {
+    command = "sleep 800" # 300 seconds = 5 minutes
+  }
+}
 # School HTTP API Gateway
 resource "aws_apigatewayv2_api" "school_http_api" {
   name          = "School HTTP API"
   protocol_type = "HTTP"
   description   = "HTTP API Gateway for the Schools microservice."
+  depends_on = [
+    aws_ecs_task_definition.keycloak,
+    null_resource.sleep
+  ]
 
   cors_configuration {
     allow_origins   = ["https://muhohodev.com","http://localhost:4200"]

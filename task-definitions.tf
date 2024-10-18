@@ -41,13 +41,13 @@ resource "aws_ecs_task_definition" "keycloak" {
   family                   = "keycloak"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
   container_definitions = jsonencode([
     {
       name      = "keycloak-container"
-      image     = "quay.io/keycloak/keycloak:25.0"
+      image     = "muhohoweb/keycloak:1.0.2" # Custom image with the realm JSON
       essential = true
       environment = [
         {
@@ -130,7 +130,7 @@ resource "aws_ecs_task_definition" "keycloak" {
           protocol      = "tcp"
         }
       ],
-      command = ["start", "--http-relative-path=keycloak/auth"],
+      # Removed the command field to avoid conflict with Dockerfile's ENTRYPOINT
       healthCheck = {
         command     = ["CMD-SHELL", "bash -c 'echo -e \"GET /keycloak/auth/health HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\" > /dev/tcp/localhost/9000 || exit 1'"]
         interval    = 30
@@ -138,11 +138,11 @@ resource "aws_ecs_task_definition" "keycloak" {
         retries     = 10
         startPeriod = 30
       }
-
     }
   ])
   execution_role_arn = var.taskExecutionRole
 }
+
 
 resource "aws_ecs_task_definition" "students" {
   depends_on = [null_resource.run_db_initializer]
@@ -236,8 +236,8 @@ resource "aws_ecs_task_definition" "library" {
   family                   = "library-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "1024"
-  memory                   = "2048"
+  cpu                      = "512"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
@@ -255,7 +255,7 @@ resource "aws_ecs_task_definition" "library" {
         },
         {
           "name": "STUDENTS_URL",
-          "value": var.domain
+          "value": "https://muhohodev.com"
         },
         {
           "name": "KEY_CLOAK_CLIENT_ID",
